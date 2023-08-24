@@ -55,3 +55,21 @@ module.exports.getOneBlog = async function (req, res) {
       })
       .status(200);
   };
+
+  module.exports.deleteBlog = async function(req, res) {
+    const { blogId } = req.params;
+    const data_exists = await Blog.findByIdAndDelete(blogId);
+    if (!data_exists) {
+      return res
+        .json({
+          msg: "No Such Blog",
+        })
+        .status(403);
+    }
+  
+    return res
+      .json({
+        msg: "Blog Deleted Successfully",
+      })
+      .status(200);
+  }
