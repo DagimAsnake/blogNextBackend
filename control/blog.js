@@ -38,3 +38,20 @@ module.exports.addBlog = async function (req, res) {
         msg: "Blog sent successfully"
     }).status(200)
 }
+
+module.exports.getOneBlog = async function (req, res) {
+    const { blogId } = req.params;
+    const one_blog = await Blog.findById(blogId);
+    if (!one_blog) {
+      return res
+        .json({
+          msg: "Id dont exist",
+        })
+        .status(403);
+    }
+    return res
+      .json({
+        msg: one_blog,
+      })
+      .status(200);
+  };
