@@ -51,7 +51,7 @@ module.exports.getOneBlog = async function (req, res) {
     }
     return res
       .json({
-        msg: one_blog,
+        msg: one_blog,  
       })
       .status(200);
   };
@@ -72,4 +72,23 @@ module.exports.getOneBlog = async function (req, res) {
         msg: "Blog Deleted Successfully",
       })
       .status(200);
+  }
+
+  module.exports.updateBlog = async function (req, res) {
+    const { blogId } = req.params; 
+    const data = req.body;
+    const updated_data = {
+        title: data.title,
+        topic: data.topic,
+        content: data.content
+    };
+    const data_exists = await Blog.findOneAndUpdate({ _id: blogId }, updated_data, {
+      runValidators: true,
+    });
+
+    if (!data_exists) {
+        return res.status(403).json({msg: 'No data exists'}); 
+      }
+      
+      res.status(200).json({msg: 'Updated successfully'});
   }
