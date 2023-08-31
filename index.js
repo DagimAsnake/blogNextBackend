@@ -7,8 +7,8 @@ const mongoose = require("mongoose");
 
 mongoose.set("strictQuery", true);
 
-// const dbUrl = "mongodb://localhost:27017/blogNext"
-const dbUrl = process.env.DB_URL
+const dbUrl = "mongodb://localhost:27017/blogNext"
+// const dbUrl = process.env.DB_URL
 mongoose
     .connect(dbUrl, {
         useUnifiedTopology: true,
@@ -33,5 +33,7 @@ app.use(function (req, res, next) {
 
 
 const blogRouter = require('./route/blog')
+const userRouter = require('./route/auth')
 
 app.use('/blog', blogRouter)
+app.use('/auth', userRouter)
