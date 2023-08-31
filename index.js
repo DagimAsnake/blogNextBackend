@@ -4,6 +4,8 @@ if (process.env.NODE_ENV != 'production') {
 
 const { app, express } = require("./server");
 const mongoose = require("mongoose");
+const cors = require('cors')
+const cookieParser = require('cookie-parser')
 
 mongoose.set("strictQuery", true);
 
@@ -30,6 +32,7 @@ app.use(function (req, res, next) {
     res.setHeader("Access-Control-Allow-Headers", "*");
     next();
 });
+app.use(cookieParser())
 
 
 const blogRouter = require('./route/blog')
