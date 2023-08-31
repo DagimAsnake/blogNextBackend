@@ -49,9 +49,15 @@ module.exports.Register = async (req, res) => {
   
       await new_user.save();
   
+      const token = jwt.sign({ id: new_user._id, },SECRET_KEY);
+
+      res.cookie('session', token, { httpOnly: true})
+    
       return res.status(200).json({
-        msg: "User created successfully",
-      });
+          msg: "User created successfully, Logged In Successfully",
+          token: token,
+        });
+     
     } catch (err) {
       console.error(err);
       return res.status(500).json({
@@ -91,4 +97,31 @@ module.exports.Login = async (req, res) => {
         msg: "Logged In Successfully",
         token: token,
       });
+  };
+
+
+module.exports.VerifyUserToken = async function (req, res) {
+  const authHeader = req.get("Authorization");
+
+  if (!authHeader) {
+    return res.json({
+      msg: false,
+    }).status(200);
+  }
+
+  const token = authHeader.split(" ")[1];
+    const validToken = jwt.verify(token, SECRET_KEY);
+
+    if (validToken) {
+      return res
+        .json({
+          msg: true,
+        })
+        .status(401);
+    }
+    return res
+      .json({
+        msg: false,
+      })
+      .status(200);
   };
