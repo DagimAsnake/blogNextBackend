@@ -86,42 +86,90 @@ module.exports.getOneBlog = async function (req, res) {
   module.exports.deleteBlog = async function(req, res) {
     const token = req.get("Authorization").split(" ")[1];
     const decodedToken = jwt.verify(token, SECRET_KEY);
-
-    const { blogId } = req.params;
-    const data_exists = await Blog.findByIdAndDelete(blogId);
-    if (!data_exists) {
-      return res
-        .json({
-          msg: "No Such Blog",
-        })
-        .status(403);
-    }
   
-    return res
-      .json({
-        msg: "Blog Deleted Successfully",
-      })
-      .status(200);
-  }
+    const { blogId } = req.params;
+  
+    try {
+      const blog = await Blog.findById(blogId);
+  
+      if (!blog) {
+        return res.status(404).json({ msg: 'Blog not found' });
+      }
+  
+      // Check if the logged-in user is the creator of the blog
+      if (blog.user.toString() !== decodedToken.id) {
+        return res.status(403).json({ msg: 'Not authorized to delete this blog' });
+      }
+  
+      await Blog.findByIdAndDelete(blogId);
+      return res.status(200).json({ msg: 'Blog deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting blog:', error);
+      return res.status(500).json({ error: 'Server error' });
+    }
+  };
 
   module.exports.updateBlog = async function (req, res) {
     const token = req.get("Authorization").split(" ")[1];
     const decodedToken = jwt.verify(token, SECRET_KEY);
-    
-    const { blogId } = req.params; 
+  
+    const { blogId } = req.params;
     const data = req.body;
-    const updated_data = {
-        title: data.title,
-        topic: data.topic,
-        content: data.content
+    const updatedData = {
+      title: data.title,
+      topic: data.topic,
+      content: data.content,
     };
-    const data_exists = await Blog.findOneAndUpdate({ _id: blogId }, updated_data, {
-      runValidators: true,
-    });
-
-    if (!data_exists) {
-        return res.status(403).json({msg: 'No data exists'}); 
+  
+    try {
+      const blog = await Blog.findById(blogId);
+  
+      if (!blog) {
+        return res.status(404).json({ msg: 'Blog not found' });
       }
-      
-      res.status(200).json({msg: 'Updated successfully'});
-  }
+  
+      // Check if the logged-in user is the creator of the blog
+      if (blog.user.toString() !== decodedToken.id) {
+        return res.status(403).json({ msg: 'Not authorized to update this blog' });
+      }
+  
+      await Blog.findByIdAndUpdate(blogId, updatedData);
+      return res.status(200).json({ msg: 'Blog updated successfully' });
+    } catch (error) {
+      console.error('Error updating blog:', error);
+      return res.status(500).json({ error: 'Server error' });
+    }
+  };
+
+  module.exports.getUserBlogs = async function (req, res) {
+    const token = req.get("Authorization").split(" ")[1];
+    const decodedToken = jwt.verify(token, SECRET_KEY);
+   
+    try {
+      const userBlogs = await Blog.find({ user: decodedToken.id })
+        .sort({ createdAt: -1 })
+        .populate('user', 'username firstName lastName');
+  
+      const data = userBlogs.map((blog) => ({
+        _id: blog._id,
+        title: blog.title,
+        topic: blog.topic,
+        content: blog.content,
+        createdAt: blog.createdAt,
+        user: {
+          username: blog.user.username,
+          firstName: blog.user.firstName,
+          lastName: blog.user.lastName,
+        },
+      }));
+  
+      return res.status(200).json({
+        blogs: data,
+      });
+    } catch (error) {
+      console.error('Error retrieving user blogs:', error);
+      return res.status(500).json({
+        error: 'Server error',
+      });
+    }
+  };

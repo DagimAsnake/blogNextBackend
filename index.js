@@ -33,7 +33,7 @@ app.use(function (req, res, next) {
     next();
 });
 app.use(cookieParser())
-
+app.use(cors());
 
 const blogRouter = require('./route/blog')
 const userRouter = require('./route/auth')

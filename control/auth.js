@@ -49,7 +49,7 @@ module.exports.Register = async (req, res) => {
   
       await new_user.save();
   
-      const token = jwt.sign({ id: new_user._id, },SECRET_KEY);
+      const token = jwt.sign({ id: new_user._id, username: new_user.username },SECRET_KEY);
 
       res.cookie('session', token, { httpOnly: true})
     
@@ -89,7 +89,7 @@ module.exports.Login = async (req, res) => {
           error: "Incorrect email or password",
         });
       }
-    const token = jwt.sign({ id: user._id, },SECRET_KEY);
+    const token = jwt.sign({ id: user._id, username: user.username },SECRET_KEY);
 
     res.cookie('session', token, { httpOnly: true})
   
@@ -100,28 +100,34 @@ module.exports.Login = async (req, res) => {
   };
 
 
-module.exports.VerifyUserToken = async function (req, res) {
-  const authHeader = req.get("Authorization");
-
-  if (!authHeader) {
-    return res.json({
-      msg: false,
-    }).status(200);
-  }
-
-  const token = authHeader.split(" ")[1];
-    const validToken = jwt.verify(token, SECRET_KEY);
-
-    if (validToken) {
+  module.exports.VerifyUserToken = async function (req, res) {
+    const authHeader = req.get("Authorization");
+  
+    if (!authHeader) {
+      return res.json({
+        msg: false,
+      }).status(200);
+    }
+  
+    const token = authHeader.split(" ")[1];
+    let validToken;
+  
+    try {
+      validToken = jwt.verify(token, SECRET_KEY);
+    } catch (error) {
       return res
         .json({
-          msg: true,
+          msg: false,
         })
-        .status(401);
+        .status(200);
     }
+  
     return res
       .json({
-        msg: false,
+        msg: true,
+        payload: {
+          username: validToken.username,
+        },
       })
       .status(200);
   };
