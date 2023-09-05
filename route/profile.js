@@ -4,5 +4,6 @@ const isLoggedIn = require("../util/isLoggedIn");
 
 router.put('/changepassword', isLoggedIn, profileController.ChangePassword)
 router.get("/", isLoggedIn, profileController.viewProfile)
+router.put("/edit", isLoggedIn, profileController.EditUserProfile);
 
 module.exports = router;

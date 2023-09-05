@@ -50,3 +50,33 @@ module.exports.viewProfile =async (req, res) => {
 
     return res.json({ msg: user }).status(200)
 }
+
+module.exports.EditUserProfile = async function (req, res) {
+    const data = req.body
+    const token = req.get("Authorization").split(" ")[1];
+    const decodedToken = jwt.verify(token, SECRET_KEY);
+
+    if (!(data.firstname && data.lastname && data.email && data.username)) {
+        return res.json({
+            msg: 'All inputs are required'
+        })
+    }
+
+    const new_data = {
+        username: data.username,
+        firstName: data.firstname,
+        lastName: data.lastname,
+        email: data.email,
+    }
+
+    const user_data = await User.findByIdAndUpdate(decodedToken.id, new_data, { runValidators: true, });
+    if (!user_data) {
+        return res.json({
+            msg: "No such user"
+        }).status(401)
+    }
+
+    return res.json({
+        msg: "Data Updated Successfully"
+    }).status(200)
+}
